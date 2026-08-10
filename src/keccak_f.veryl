@@ -4,7 +4,7 @@ package Keccak{
     const L: u32 = $clog2(W);
     const Nr: u32 = 12+2*L;
 
-    type keccak_state = logic<W> [25];
+    type keccak_state = logic<25,W>;
     const rho_offset: u32 [25] = '{0,1,190,28,91,
                             36,300,6,55,276,
                             3,10,171,153,231,
@@ -112,8 +112,8 @@ package Keccak{
                 rc = RC[i];
             }
         }
-        temp_state[0] = state_A[0] ^ rc;
-        temp_state[1:24] = state_A[1:24];
+        temp_state = state_A;
+        temp_state[0] ^= rc;
         return temp_state;
     }
 }
@@ -149,7 +149,9 @@ module Keccak_f (
     always_ff{
         if_reset{
             state_A = '{default: '0};
-        } else if (o_busy){
+        } else if (i_run){
+            state_A = i_din;
+        }else if (o_busy){
             state_A = i2A;
         }
     }

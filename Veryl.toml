@@ -4,3 +4,9 @@ version = "0.1.0"
 [build]
 sources = ["src"]
 target = {type = "directory", path = "target"}
+[synth]
+top          = "Keccak_f"
+library      = "sky130"
+clock_freq   = 500.0
+activity     = 0.5
+timing_paths = 1
