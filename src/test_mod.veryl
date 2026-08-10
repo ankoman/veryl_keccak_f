@@ -1,0 +1,33 @@
+package Keccak{
+    const B: u32 = 200;
+    const W: u32 = B/25;
+    const L: u32 = $clog2(W);
+
+    type keccak_state = logic<8> [25];
+}
+
+module Keccak_f (
+    i_clk: input clock,
+    i_rst: input reset,
+    i_run: input logic,
+    o_busy: output logic,
+    o_drdy: output logic,
+){
+    var state_A: Keccak::keccak_state;
+
+    function pi(
+        state_A: input Keccak::keccak_state,
+    ) -> Keccak::keccak_state
+    {
+        let temp_state: Keccak::keccak_state = '{default: '1};
+        return temp_state;
+    }
+
+    always_ff{
+        if_reset{
+            state_A = '{default: '0};
+        } else{
+            state_A  = pi(state_A);
+        }
+    }
+}

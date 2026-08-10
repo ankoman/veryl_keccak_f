@@ -1,0 +1,21 @@
+import Keccak::keccak_state;
+
+#[test(test_keccak_f)]
+module test_keccak_f{
+
+    inst clk: $tb::clock_gen#(period: 10);
+    inst rst: $tb::reset_gen(clk);
+
+    var dout: keccak_state;
+    var busy: logic;
+    var drdy: logic;
+    var run: logic;
+
+    inst dut: Keccak_f(
+        i_clk: clk,
+        i_rst: rst,
+        i_run: run,
+        o_busy: busy,
+        o_drdy: drdy,
+    );
+}
