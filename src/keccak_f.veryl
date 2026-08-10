@@ -1,7 +1,8 @@
 package Keccak{
-    const B: u32 = 200;
+    const B: u32 = 1600;
     const W: u32 = B/25;
     const L: u32 = $clog2(W);
+    const Nr: u32 = 12+2*L;
 
     type keccak_state = logic<W> [25];
     const rho_offset: u32 [25] = '{0,1,190,28,91,
@@ -9,13 +10,21 @@ package Keccak{
                             3,10,171,153,231,
                             105,45,15,21,136,
                             210,66,253,120,78};
-    const rc_200: u8 [18] = '{
-        8'h01, 8'h82, 8'h8A, 8'h00,
-        8'h8B, 8'h01, 8'h81, 8'h09,
-        8'h8A, 8'h88, 8'h09, 8'h0A,
-        8'h8B, 8'h8B, 8'h89, 8'h03,
-        8'h02, 8'h80
-    };
+    
+    // const RC: u8 [18] = '{
+    //     8'h01, 8'h82, 8'h8A, 8'h00,
+    //     8'h8B, 8'h01, 8'h81, 8'h09,
+    //     8'h8A, 8'h88, 8'h09, 8'h0A,
+    //     8'h8B, 8'h8B, 8'h89, 8'h03,
+    //     8'h02, 8'h80};
+
+    const RC: u64 [24] = '{64'h0000000000000001,64'h0000000000008082,64'h800000000000808A,64'h8000000080008000,
+                            64'h000000000000808B,64'h0000000080000001,64'h8000000080008081,64'h8000000000008009,
+                            64'h000000000000008A,64'h0000000000000088,64'h0000000080008009,64'h000000008000000A,
+                            64'h000000008000808B,64'h800000000000008B,64'h8000000000008089,64'h8000000000008003,
+                            64'h8000000000008002,64'h8000000000000080,64'h000000000000800A,64'h800000008000000A,
+                            64'h8000000080008081,64'h8000000000008080,64'h0000000080000001,64'h8000000080008008};
+
     // function rotl(
     //     lane: input logic<W>,
     //     rot:  input u16,
@@ -92,14 +101,15 @@ package Keccak{
 
     function iota(
         state_A: input keccak_state,
-        sreg_ir: input logic<12+2*L>,
+        sreg_ir: input logic<Nr>,
     ) -> keccak_state
     {
         var temp_state: keccak_state;
-        var rc: u8;
-        for i in 0..18 {
+        var rc: u64;    // for b=1600
+        //var rc: u8;     // for b=200
+        for i in 0..Nr {
             if sreg_ir[i] {
-                rc = rc_200[i];
+                rc = RC[i];
             }
         }
         temp_state[0] = state_A[0] ^ rc;
@@ -118,7 +128,7 @@ module Keccak_f (
     o_dout: output Keccak::keccak_state,
 ){
     var state_A: Keccak::keccak_state;
-    var sreg_ir: logic<12+2*Keccak::L>;
+    var sreg_ir: logic<Keccak::Nr>;
 
     always_ff {
         if_reset{

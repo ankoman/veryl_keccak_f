@@ -60,4 +60,8 @@ async def test_keccak_f(dut):
 
     for _ in range(100):
         await RisingEdge(dut.i_clk)
+
+    for i in range(25):
+        print(f"state_A[{i:2d}] = 0x{int(dut.state_A[i].value):016x}")
+        
 }}}
