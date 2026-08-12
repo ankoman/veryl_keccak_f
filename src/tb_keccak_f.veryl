@@ -1,78 +1,77 @@
 import Keccak::keccak_state;
 
-#[test(test_keccak_f)]
-module test_keccak_f{
+// #[test(test_keccak_f)]
+// module test_keccak_f{
 
-    inst clk: $tb::clock_gen#(period: 10);
-    inst rst: $tb::reset_gen(clk);
+//     inst clk: $tb::clock_gen#(period: 10);
+//     inst rst: $tb::reset_gen(clk);
 
-    var dout: keccak_state;
-    var busy: logic;
-    var drdy: logic;
-    var run: logic;
+//     var dout: keccak_state;
+//     var busy: logic;
+//     var drdy: logic;
+//     var run: logic;
 
-    inst dut: Keccak_f(
-        i_clk: clk,
-        i_rst: rst,
-        i_din: '0,
-        i_run: run,
-        o_busy: busy,
-        o_drdy: drdy,
-        o_dout: dout,
-    );
+//     inst dut: Keccak_f(
+//         i_clk: clk,
+//         i_rst: rst,
+//         i_din: '0,
+//         i_run: run,
+//         o_busy: busy,
+//         o_drdy: drdy,
+//         o_dout: dout,
+//     );
 
-    initial{
-        run = 0;
-        rst.assert();
-        clk.next();
-        run = 1;
-        clk.next();
-        run = 0;
-        clk.next(100);
-        for i in 0..25 {
-            $display("state_A[%d] = %h",　i,　dut.state_A[i]);　// Bug
-        }
-        $display("A0  = %h", dut.state_A[0]);
-        $display("A1  = %h", dut.state_A[1]);
-        $display("A2  = %h", dut.state_A[2]);
-        $display("A3  = %h", dut.state_A[3]);
-        $display("A4  = %h", dut.state_A[4]);
-        $finish();
-    }
-}
+//     initial{
+//         run = 0;
+//         rst.assert();
+//         clk.next();
+//         run = 1;
+//         clk.next();
+//         run = 0;
+//         clk.next(100);
+//         for i in 0..25 {
+//             $display("state_A[%d] = %h",　i,　dut.state_A[i]);　// Bug
+//         }
+//         $display("A0  = %h", dut.state_A[0]);
+//         $display("A1  = %h", dut.state_A[1]);
+//         $display("A2  = %h", dut.state_A[2]);
+//         $display("A3  = %h", dut.state_A[3]);
+//         $display("A4  = %h", dut.state_A[4]);
+//         $finish();
+//     }
+// }
 
-// #[test(test_keccak_f, Keccak_f)]
-// embed (cocotb) py{{{
-// import cocotb
-// from cocotb.clock import Clock
-// from cocotb.triggers import RisingEdge
-
-
-// @cocotb.test()
-// async def test_keccak_f(dut):
-//     cocotb.start_soon(
-//         Clock(dut.i_clk, 10, unit="ns").start()
-//     )
-
-//     dut.i_run.value = 0
-
-//     dut.i_rst.value = 0
-//     await RisingEdge(dut.i_clk)
-
-//     dut.i_rst.value = 1
-
-//     dut.i_din.value = 0;
-        
-//     dut.i_run.value = 1
-//     await RisingEdge(dut.i_clk)
-//     dut.i_run.value = 0
-
-//     for _ in range(100):
-//         await RisingEdge(dut.i_clk)
+#[test(test_keccak_f, Keccak_f)]
+embed (cocotb) py{{{
+import cocotb
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge
 
 
-//     state = int(dut.state_A.value)
-//     for i in range(25):
-//         lane = (state >> (64 * i)) & ((1 << 64) - 1)
-//         dut._log.info(f"state_A[{i:2d}] = 0x{lane:016x}")     
-// }}}
+@cocotb.test()
+async def test_keccak_f(dut):
+    cocotb.start_soon(
+        Clock(dut.i_clk, 10, unit="ns").start()
+    )
+
+    dut.i_run.value = 0
+
+    dut.i_rst.value = 0
+    await RisingEdge(dut.i_clk)
+
+    dut.i_rst.value = 1
+
+    for i in range(25):
+        dut.i_din[i].value = 0
+            
+    dut.i_run.value = 1
+    await RisingEdge(dut.i_clk)
+    dut.i_run.value = 0
+
+    for _ in range(100):
+        await RisingEdge(dut.i_clk)
+
+    for i in range(25):
+        print(f"state_A[{i:2d}] = 0x{int(dut.state_A[i].value):016x}")
+    
+}}}

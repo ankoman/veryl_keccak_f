@@ -4,7 +4,9 @@ package Keccak{
     const L: u32 = $clog2(W);
     const Nr: u32 = 12+2*L;
 
-    type keccak_state = logic<25,W>;
+    
+    //type keccak_state = logic<25,W>;
+    type keccak_state = logic<W> [25];
     const rho_offset: u32 [25] = '{0,1,190,28,91,
                             36,300,6,55,276,
                             3,10,171,153,231,
