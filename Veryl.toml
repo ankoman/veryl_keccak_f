@@ -1,6 +1,8 @@
 [project]
 name = "veryl_keccak_f"
-version = "0.1.0"
+version = "0.1.1" 
+repository = "https://github.com/ankoman/veryl_keccak_f"
+categories = ["crypto"]
 [build]
 sources = ["src"]
 target = {type = "directory", path = "target"}
@@ -10,3 +12,7 @@ library      = "sky130"
 clock_freq   = 500.0
 activity     = 0.5
 timing_paths = 1
+[publish]
+bump_commit = true
+publish_commit = true
+register = true
