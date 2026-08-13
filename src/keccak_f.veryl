@@ -123,11 +123,12 @@ package Keccak{
 module Keccak_f (
     i_clk: input clock,
     i_rst: input reset,
-    i_din: input Keccak::keccak_state,
+    i_din: input logic<Keccak::W>,
     i_run: input logic,
+    i_din_vld: input logic,
     o_busy: output logic,
     o_drdy: output logic,
-    o_dout: output Keccak::keccak_state,
+    o_dout: output logic<Keccak::W>,
 ){
     var state_A: Keccak::keccak_state;
     var sreg_ir: logic<Keccak::Nr>;
@@ -151,14 +152,17 @@ module Keccak_f (
     always_ff{
         if_reset{
             state_A = '{default: '0};
-        } else if (i_run){
-            state_A = i_din;
-        }else if (o_busy){
+        } else if (o_busy){
             state_A = i2A;
-        }
+        } else if (i_din_vld) {
+            for i in 0..24 {
+                state_A[i] = state_A[i + 1];
+            }
+            state_A[24] = i_din;
+         }
     }
 
     assign o_busy = |sreg_ir;
     assign o_drdy = sreg_ir[msb];
-    assign o_dout = state_A;
+    assign o_dout = state_A[0];
 }

@@ -15,4 +15,4 @@ timing_paths = 1
 [publish]
 bump_commit = true
 publish_commit = true
-register = true
+register = false

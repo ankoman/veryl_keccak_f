@@ -46,32 +46,62 @@ embed (cocotb) py{{{
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
+from cocotb.triggers import FallingEdge
 
+async def pulse(signal, clk, cycles=1, active=1):
+    inactive = 0 if active else 1
+
+    await FallingEdge(clk)
+    signal.value = active
+
+    for _ in range(cycles):
+        await RisingEdge(clk)
+
+    await FallingEdge(clk)
+    signal.value = inactive
+
+async def shift_lane(dut, din):
+    await FallingEdge(dut.i_clk)
+
+    dut.i_din.value = din
+    dut.i_din_vld.value = 1
+
+    await RisingEdge(dut.i_clk)
+
+    await FallingEdge(dut.i_clk)
+    dut.i_din_vld.value = 0
 
 @cocotb.test()
 async def test_keccak_f(dut):
+    ### init
     cocotb.start_soon(
         Clock(dut.i_clk, 10, unit="ns").start()
     )
-
     dut.i_run.value = 0
+    dut.i_din.value = 0
 
-    dut.i_rst.value = 0
-    await RisingEdge(dut.i_clk)
+    ### reset
+    await pulse(dut.i_rst, dut.i_clk, active=0)
 
-    dut.i_rst.value = 1
+    ### run
+    await pulse(dut.i_run, dut.i_clk)
+
+    for _ in range(30):
+        await FallingEdge(dut.i_clk)
 
     for i in range(25):
-        dut.i_din[i].value = 0
-            
-    dut.i_run.value = 1
-    await RisingEdge(dut.i_clk)
-    dut.i_run.value = 0
-
-    for _ in range(100):
-        await RisingEdge(dut.i_clk)
-
-    for i in range(25):
-        print(f"state_A[{i:2d}] = 0x{int(dut.state_A[i].value):016x}")
+        value = dut.o_dout.value
+        print(f"state_A[{i:2d}] = 0x{int(value):016x}")
+        await shift_lane(dut, value)
     
+    ### run
+    await pulse(dut.i_run, dut.i_clk)
+
+    for _ in range(30):
+        await FallingEdge(dut.i_clk)
+
+    for i in range(25):
+        value = dut.o_dout.value
+        print(f"state_A[{i:2d}] = 0x{int(value):016x}")
+        await shift_lane(dut, value)
 }}}
